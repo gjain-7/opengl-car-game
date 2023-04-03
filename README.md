@@ -48,3 +48,18 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="[vcpkg root]\scripts\buildsystems\vcpkg.cmake" 
 __basic__ - No intertia, simple turning
 
 __physics__ - uses formula for more realistic driving experience.
+
+# Todo
+- [ ] Make track
+-  Display
+    - [ ] speed
+    - [ ] lap count, timer
+    - [ ] score (custom)
+- [ ] Obstruction
+- [ ] Car gothrough in fence
+- [x] Reverse the car
+- [x] Headlight on/off
+- [ ] Car model change(user option)
+- [ ] Camera views (left,right,top,inside,back,front)
+- [ ] Weather change
+- [ ] Sound
