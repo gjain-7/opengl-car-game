@@ -33,6 +33,12 @@ int main(int argc, char** argv) {
     InputState input;
     glm::mat4 projection;
     Player* player;
+    auto* headlight = new Light();
+    Window window;
+    // Vector to hold all of the world entities.
+    std::vector<Entity*> entities;
+    // Vector to hold lights
+    std::vector<Light*> lights;
 
     if (argc != 2) {
         std::cerr << "USAGE: " << argv[0] << " basic|physics" << std::endl;
@@ -48,13 +54,20 @@ int main(int argc, char** argv) {
         std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake" << std::endl;
     }
 
-    Window window;
-    window.set_key_callback([&](GLFWwindow* window, int key, int scancode, int action, int mods) {
+    window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
         // Terminate program if escape is pressed
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
-        player->handleKeyboardEvents(window, key, scancode, action, mods);
+        if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+            if(lights[1]->radius == 0.0f) {
+                lights[1]->radius = 10.0f;
+            } else {
+                lights[1]->radius = 0.0f;
+            }
+        } else {
+            player->handleKeyboardEvents(window, key, action);
+        }
     });
 
     window.set_mouse_position_callback([&](GLFWwindow* /*window*/, double x, double y) {
@@ -102,21 +115,16 @@ int main(int argc, char** argv) {
     Model fenceModel = Loader::getLoader()->loadModel("res/fence/fence.obj");
     Model coneModel = Loader::getLoader()->loadModel("res/cone/cone2_obj.obj");
     Model treeModel = Loader::getLoader()->loadModel("res/tree/PineTree03.obj");
-    Model stumpModel = Loader::getLoader()->loadModel("res/stump/TreeStump03.obj");
 
-    // Vector to hold all of the world entities.
-    std::vector<Entity*> entities;
-    // Vector to hold lights
-    std::vector<Light*> lights;
 
     // Create the skybox with the textures defined.
     SkyboxRenderer skybox(skyboxTextures, SKYBOX_SIZE);
     RenderManager manager;
 
     // Create Terrain using blend map, height map and all of the remaining texture components.
-    std::vector<std::string> terrainImages = {"res/terrain/blendMap.png", "res/terrain/grass.jpg", "res/terrain/road.jpg",
+    std::vector<std::string> terrainImages = {"res/terrain/blend_map.png", "res/terrain/grass.jpg", "res/terrain/road.jpg",
         "res/terrain/dirt.png", "res/terrain/mud.jpg"};
-    Terrain* terrain = Terrain::loadTerrain(terrainImages, "res/terrain/heightmap.png");
+    Terrain* terrain = Terrain::loadTerrain(terrainImages, "res/terrain/height_map.png");
     // Moves the terrain model to be centered about the origin.
     terrain->setPosition(vec3(-Terrain::TERRAIN_SIZE / 2, 0.0f, -Terrain::TERRAIN_SIZE / 2));
 
@@ -127,8 +135,8 @@ int main(int argc, char** argv) {
     // Create the player object, scaling for the model, and setting its position in the world to somewhere interesting.
     player = new Player(&playerModel, terrain, basic_controls);
     player->setScale(vec3(0.4f, 0.4f, 0.4f));
-    player->setPosition(terrain->getPositionFromPixel(555, 751));
-    player->setRotationY((float)5.f * constants::PI / 8.f);
+    player->setPosition(terrain->getPositionFromPixel(505, 130));
+    player->setRotationY((float)4.f * constants::PI / 8.f);
     entities.push_back(player);
 
     // Initialisation of camera, projection matrix
@@ -144,7 +152,6 @@ int main(int argc, char** argv) {
     sun->ambient = vec3(0.1f, 0.1f, 0.1f);
     lights.push_back(sun);
 
-    auto* headlight = new Light();
     headlight->position = vec4(2.0f, 8.0f, 0.0f, 1.0f);
     headlight->specular = vec3(0.8f, 0.8f, 0.4f);
     headlight->diffuse = vec3(0.8f, 0.8f, 0.4f);
@@ -154,22 +161,10 @@ int main(int argc, char** argv) {
     lights.push_back(headlight);
 
     // Adds entities to random positions on the map
-    const size_t RAND_ENTITIES = 500;
+    const size_t RAND_ENTITIES = 200;
     for (size_t i = 0; i < RAND_ENTITIES; i += 2) {
-        int selection = rand() % 2;
         Entity* ent;
-        switch (selection) {
-            case 0:
-                ent = new Entity(&treeModel);
-                break;
-            case 1:
-                ent = new Entity(&stumpModel);
-                ent->setScale(glm::vec3(0.5, 0.5, 0.5));
-                break;
-            default:
-                throw std::runtime_error("Unreachable statement");
-        }
-
+        ent = new Entity(&treeModel);
         ent->setPosition(terrain->getPositionFromPixel(rand() % 1024, rand() % 1024));
         entities.push_back(ent);
     }
@@ -225,9 +220,9 @@ int main(int argc, char** argv) {
 
     // Create the large lake
     auto* water = new Entity();
-    water->setScale(vec3(100.0f, 1.0f, 50.0f));
-    water->setPosition(terrain->getPositionFromPixel(650, 826));
-    water->setPosition(glm::vec3(water->getPosition().x, 0.4f, water->getPosition().z));
+    // water->setScale(vec3(100.0f, 1.0f, 50.0f));
+    // water->setPosition(terrain->getPositionFromPixel(650, 826));
+    // water->setPosition(glm::vec3(water->getPosition().x, 0.4f, water->getPosition().z));
 
     // Create the object for handling rendering to texture for shadows.
     ShadowMap shadowMap(player, lights[0], 4096);

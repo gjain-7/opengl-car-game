@@ -42,5 +42,5 @@ class Player : public Entity {
     float getSteer() const;
     float absVel;
 
-    void handleKeyboardEvents(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void handleKeyboardEvents(GLFWwindow* window, int key, int action);
 };
