@@ -110,7 +110,6 @@ int main(int argc, char** argv) {
     };
     // clang-format on
     // Load all of the requires models from disk.
-    Model barrelModel = Loader::getLoader()->loadModel("res/Barrel/Barrel02.obj");
     Model playerModel = Loader::getLoader()->loadModel("res/car/car-n.obj");
     Model fenceModel = Loader::getLoader()->loadModel("res/fence/fence.obj");
     Model coneModel = Loader::getLoader()->loadModel("res/cone/cone2_obj.obj");
