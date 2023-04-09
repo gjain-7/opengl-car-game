@@ -41,6 +41,7 @@ class Player : public Entity {
     float getBrake() const;
     float getSteer() const;
     float absVel;
+    int penalty;
 
     void handleKeyboardEvents(GLFWwindow* window, int key, int action);
 };

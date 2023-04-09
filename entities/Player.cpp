@@ -64,10 +64,11 @@ Player::Player(Model* model, Terrain* terrain, bool basic_controls) : Entity(mod
     this->velocity_c = {0.f, 0.f};
     this->accel = {0.f, 0.f};
     this->accel_c = {0.f, 0.f};
+    this->penalty = 0;
     if (basic_controls) {
         ROTATION_SPEED = constants::PI;
     } else {
-        ROTATION_SPEED = 0.6f;
+        ROTATION_SPEED = 0.3f;
     }
 }
 
