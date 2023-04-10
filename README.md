@@ -50,7 +50,7 @@ __basic__ - No intertia, simple turning
 __physics__ - uses formula for more realistic driving experience.
 
 # Todo
-- [ ] Make track
+- [x] Make track
 -  Display
     - [ ] speed
     - [ ] lap count, timer
@@ -59,7 +59,6 @@ __physics__ - uses formula for more realistic driving experience.
 - [ ] Car gothrough in fence
 - [x] Reverse the car
 - [x] Headlight on/off
-- [ ] Car model change(user option)
-- [ ] Camera views (left,right,top,inside,back,front)
+- [x] Camera views (left,right,top,inside,back,front)
 - [ ] Weather change
-- [ ] Sound
+- [x] Sound

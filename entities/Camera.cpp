@@ -54,30 +54,44 @@ PlayerCamera::PlayerCamera(Player* player) {
 void PlayerCamera::update(InputState& input) {
     m_distance -= input.scrollDeltaY;
     m_distance = std::clamp(m_distance, 2.5f, 20.0f);
+
+
     // top view
-    if (input.iKeyPressed) {
-        m_pitch=1.570696;
+    if (input.tKeyPressed) {
+        m_pitch=1.570796;
         m_angle_around=0.000000;
-        input.iKeyPressed = false;
     }
+
     // left view
     if (input.jKeyPressed) {
-        m_pitch=1.570696;
-        m_angle_around=0.000000;
-        input.jKeyPressed = false;
+        m_pitch=0.220000;
+        m_angle_around=-1.520000;
     }
+
     // right view
     if (input.lKeyPressed) {
-        m_pitch=1.570696;
-        m_angle_around=0.000000;
-        input.lKeyPressed = false;
+        m_pitch=0.220000;
+        m_angle_around=1.520000;
     }
-    // bottom view
+
+    // back view
     if (input.kKeyPressed) {
-        m_pitch=1.570696;
+        m_pitch=0.100000;
         m_angle_around=0.000000;
-        input.kKeyPressed = false;
     }
+
+    // reset to original view
+    if (input.rKeyPressed) {
+        m_pitch=constants::PI / 8.f;;
+        m_angle_around=0.000000;
+        m_distance=5.0f;
+    }
+
+    if (input.iKeyPressed) {
+        m_pitch=0.220000;
+        m_angle_around=-3.120000;
+    }
+
     if (input.lMousePressed) {
         m_pitch -= input.deltaY / 50;
         m_pitch = std::clamp(m_pitch, 0.1f, constants::PI / 2 - 0.0001f);
@@ -117,7 +131,7 @@ void PlayerCamera::update(InputState& input) {
     m_focal_point = m_player->getPosition();
     m_position = glm::vec3(-offsetX, vDist, -offsetZ) + m_focal_point;
 
-    printf("%f %f %f %f %f %f %f %f\n",m_angle_around,angle,hDist,vDist,offsetX,offsetZ,m_distance,m_pitch);
+    // printf("%f %f %f %f %f %f %f %f\n",m_angle_around,angle,hDist,vDist,offsetX,offsetZ,m_distance,m_pitch);
     look(m_focal_point);
 }
 

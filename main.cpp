@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     if (basic_controls) {
         std::cout << "Controls: \n\tw - forward\n\ts - backwards\n\ta/d - turn left/right" << std::endl;
     } else {
-        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake"
+        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake\n\tt - top view\n\ti - front view\n\tj - left view\n\tl - right view\n\tk - back view\n\tr - rest to original view\n\th - toggle headlight"
                   << std::endl;
     }
 
@@ -62,34 +62,66 @@ int main(int argc, char** argv) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
-        if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+        // on/off headlights
+        else if (key == GLFW_KEY_H && action == GLFW_PRESS) {
             if (lights[1]->radius == 0.0f) {
                 lights[1]->radius = 10.0f;
             } else {
                 lights[1]->radius = 0.0f;
             }
-        }
-        if (key == GLFW_KEY_I && action == GLFW_PRESS){
-            std::cout<<"TOP VIEW\n";
-            input.iKeyPressed = true;
-        }
-        if (key == GLFW_KEY_J && action == GLFW_PRESS){
-            std::cout<<"LEFT VIEW\n";
-            input.jKeyPressed = true;
-        }
-        if (key == GLFW_KEY_L && action == GLFW_PRESS){
-            std::cout<<"RIGHT VIEW\n";
-            input.lKeyPressed = true;
-        }
-        if (key == GLFW_KEY_K && action == GLFW_PRESS){
-            std::cout<<"BOTTOM VIEW\n";
-            input.kKeyPressed = true;
-        }
-         else {
             std::cout << "Player Position: " << glm::to_string(player->getPosition()) << std::endl;
             std::cout << "Penalty: " << player->penalty << "\n";
+            
+        }
 
-        } else {
+        // top view
+        else if (key == GLFW_KEY_T){
+            if(action == GLFW_PRESS)
+                input.tKeyPressed = true;
+            else if(action == GLFW_RELEASE)
+                input.tKeyPressed = false;
+        }
+
+        // left view
+        else if (key == GLFW_KEY_J){
+            if(action == GLFW_PRESS)
+                input.jKeyPressed = true;
+            else if(action == GLFW_RELEASE)
+                input.jKeyPressed = false;
+        }
+
+        // right view
+        else if (key == GLFW_KEY_L){
+            if(action == GLFW_PRESS)
+                input.lKeyPressed = true;
+            else if(action == GLFW_RELEASE)
+                input.lKeyPressed = false;
+        }
+
+        // back view
+        else if (key == GLFW_KEY_K){
+            if(action == GLFW_PRESS)
+                input.kKeyPressed = true;
+            else if(action == GLFW_RELEASE)
+                input.kKeyPressed = false;
+        }
+
+        // front view
+        else if (key == GLFW_KEY_I){
+            if(action == GLFW_PRESS)
+                input.iKeyPressed = true;
+            else if(action == GLFW_RELEASE)
+                input.iKeyPressed = false;
+        }
+
+        // reset to original view
+        else if (key == GLFW_KEY_R){
+            if(action == GLFW_PRESS)
+                input.rKeyPressed = true;
+            else if(action == GLFW_RELEASE)
+                input.rKeyPressed = false;
+        }
+        else {
             player->handleKeyboardEvents(window, key, action);
         }
     });

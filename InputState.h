@@ -10,6 +10,8 @@ struct InputState {
         , jKeyPressed(false)
         , lKeyPressed(false)
         , kKeyPressed(false)
+        , rKeyPressed(false)
+        , tKeyPressed(false)
         , prevX(0)
         , prevY(0)
         , deltaX(0)
@@ -25,9 +27,12 @@ struct InputState {
     // Views of the car
 
     bool iKeyPressed;
-    bool jKeyPressed
-    bool lKeyPressed
-    bool kKeyPressed
+    bool jKeyPressed;
+    bool lKeyPressed;
+    bool kKeyPressed;
+    bool rKeyPressed;
+    bool tKeyPressed;
+
     // Last known position of the cursor
     float prevX;
     float prevY;
