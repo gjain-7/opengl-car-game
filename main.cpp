@@ -18,8 +18,10 @@
 #include "glm_ext.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+#include <chrono>
 
 using namespace glm;
+using namespace std::chrono;
 
 constexpr float SKYBOX_SIZE = 200.0f;
 
@@ -51,7 +53,8 @@ int main(int argc, char** argv) {
     if (basic_controls) {
         std::cout << "Controls: \n\tw - forward\n\ts - backwards\n\ta/d - turn left/right" << std::endl;
     } else {
-        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake" << std::endl;
+        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake"
+                  << std::endl;
     }
 
     window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
@@ -60,7 +63,7 @@ int main(int argc, char** argv) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
         if (key == GLFW_KEY_L && action == GLFW_PRESS) {
-            if(lights[1]->radius == 0.0f) {
+            if (lights[1]->radius == 0.0f) {
                 lights[1]->radius = 10.0f;
             } else {
                 lights[1]->radius = 0.0f;
@@ -83,13 +86,16 @@ int main(int argc, char** argv) {
             input.kKeyPressed = true;
         }
          else {
+            std::cout << "Player Position: " << glm::to_string(player->getPosition()) << std::endl;
+            std::cout << "Penalty: " << player->penalty << "\n";
+
+        } else {
             player->handleKeyboardEvents(window, key, action);
         }
     });
 
-    window.set_mouse_position_callback([&](GLFWwindow* /*window*/, double x, double y) {
-        input.update((float)x, (float)y);
-    });
+    window.set_mouse_position_callback(
+        [&](GLFWwindow* /*window*/, double x, double y) { input.update((float)x, (float)y); });
 
     window.set_mouse_scroll_callback([&](GLFWwindow* /*window*/, double xoffset, double yoffset) {
         input.updateScroll((float)xoffset, (float)yoffset);
@@ -132,14 +138,13 @@ int main(int argc, char** argv) {
     Model coneModel = Loader::getLoader()->loadModel("res/cone/cone2_obj.obj");
     Model treeModel = Loader::getLoader()->loadModel("res/tree/PineTree03.obj");
 
-
     // Create the skybox with the textures defined.
     SkyboxRenderer skybox(skyboxTextures, SKYBOX_SIZE);
     RenderManager manager;
 
     // Create Terrain using blend map, height map and all of the remaining texture components.
-    std::vector<std::string> terrainImages = {"res/terrain/blend_map.png", "res/terrain/grass.jpg", "res/terrain/road.jpg",
-        "res/terrain/dirt.png", "res/terrain/mud.jpg"};
+    std::vector<std::string> terrainImages = {"res/terrain/blend_map.png", "res/terrain/grass.jpg",
+        "res/terrain/road.jpg", "res/terrain/dirt.png", "res/terrain/mud.jpg"};
     Terrain* terrain = Terrain::loadTerrain(terrainImages, "res/terrain/height_map.png");
     // Moves the terrain model to be centered about the origin.
     terrain->setPosition(vec3(-Terrain::TERRAIN_SIZE / 2, 0.0f, -Terrain::TERRAIN_SIZE / 2));
@@ -177,7 +182,7 @@ int main(int argc, char** argv) {
     lights.push_back(headlight);
 
     // Adds entities to random positions on the map
-    const size_t RAND_ENTITIES = 200;
+    const size_t RAND_ENTITIES = 100;
     for (size_t i = 0; i < RAND_ENTITIES; i += 2) {
         Entity* ent;
         ent = new Entity(&treeModel);
@@ -185,28 +190,85 @@ int main(int argc, char** argv) {
         entities.push_back(ent);
     }
 
-    // Set of pre calculated cone positions on corners of the track
-    // clang-format off
-    std::vector<int> conePositions = {
-        263, 262, 226, 250, 209, 273,
-        213, 299, 342, 717, 329, 734,
-        326, 751, 354, 755, 372, 754,
-        750, 400, 765, 396, 748, 381,
-        828, 480, 842, 476, 854, 478,
-        852, 500, 852, 521, 842, 547,
-        772, 402
-    };
-    // clang-format on
-    // Creates cones from the positions and adds them.
-    for (size_t i = 0; i < conePositions.size(); i += 2) {
-        auto* cone = new Entity(&coneModel);
-        cone->setPosition(terrain->getPositionFromPixel(conePositions[i], conePositions[i + 1]));
-        cone->setScale(vec3(0.01f, 0.01f, 0.01f));  // The cone model was MASSIVE
-        entities.push_back(cone);
-    }
+    // // Set of pre calculated cone positions on corners of the track
+    // // clang-format off
+    // std::vector<int> conePositions = {
+    //     263, 262, 226, 250, 209, 273,
+    //     213, 299, 342, 717, 329, 734,
+    //     326, 751, 354, 755, 372, 754,
+    //     750, 400, 765, 396, 748, 381,
+    //     828, 480, 842, 476, 854, 478,
+    //     852, 500, 852, 521, 842, 547,
+    //     772, 402
+    // };
+    // // clang-format on
+    // // Creates cones from the positions and adds them.
+    // for (size_t i = 0; i < conePositions.size(); i += 2) {
+    //     auto* cone = new Entity(&coneModel);
+    //     cone->setPosition(terrain->getPositionFromPixel(conePositions[i], conePositions[i + 1]));
+    //     cone->setScale(vec3(0.01f, 0.01f, 0.01f));  // The cone model was MASSIVE
+    //     entities.push_back(cone);
+    // }
 
     // Add the bordering fences to the map.
     float fenceSize = fenceModel.getRangeInDim(0).second - fenceModel.getRangeInDim(0).first;
+
+    float conePlacement = 25.0f;
+    float coneSize = 5.0f;
+    for (float x = -Terrain::TERRAIN_SIZE / 2 + conePlacement; x < Terrain::TERRAIN_SIZE / 2 - conePlacement;
+         x += coneSize) {
+        auto* cone = new Entity(&coneModel);
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        cone->setPosition(vec3(x, 0.0f, Terrain::TERRAIN_SIZE / 2 - conePlacement));
+        entities.push_back(cone);
+
+        cone = new Entity(&coneModel);
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        cone->setPosition(vec3(x, 0.0f, -Terrain::TERRAIN_SIZE / 2 + conePlacement));
+        entities.push_back(cone);
+    }
+
+    for (float z = -Terrain::TERRAIN_SIZE / 2 + conePlacement; z < Terrain::TERRAIN_SIZE / 2 - conePlacement;
+         z += coneSize) {
+        auto* cone = new Entity(&coneModel);
+        cone->setPosition(vec3(Terrain::TERRAIN_SIZE / 2 - conePlacement, 0.0f, z));
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        entities.push_back(cone);
+
+        cone = new Entity(&coneModel);
+        cone->setPosition(vec3(-Terrain::TERRAIN_SIZE / 2 + conePlacement, 0.0f, z));
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        entities.push_back(cone);
+    }
+
+    conePlacement = 54.0f;
+
+    for (float x = -Terrain::TERRAIN_SIZE / 2 + conePlacement; x < Terrain::TERRAIN_SIZE / 2 - conePlacement;
+         x += coneSize) {
+        auto* cone = new Entity(&coneModel);
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        cone->setPosition(vec3(x, 0.0f, Terrain::TERRAIN_SIZE / 2 - conePlacement));
+        entities.push_back(cone);
+
+        cone = new Entity(&coneModel);
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        cone->setPosition(vec3(x, 0.0f, -Terrain::TERRAIN_SIZE / 2 + conePlacement));
+        entities.push_back(cone);
+    }
+
+    for (float z = -Terrain::TERRAIN_SIZE / 2 + conePlacement; z < Terrain::TERRAIN_SIZE / 2 - conePlacement;
+         z += coneSize) {
+        auto* cone = new Entity(&coneModel);
+        cone->setPosition(vec3(Terrain::TERRAIN_SIZE / 2 - conePlacement, 0.0f, z));
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        entities.push_back(cone);
+
+        cone = new Entity(&coneModel);
+        cone->setPosition(vec3(-Terrain::TERRAIN_SIZE / 2 + conePlacement, 0.0f, z));
+        cone->setScale(vec3(0.01f, 0.01f, 0.01f));
+        entities.push_back(cone);
+    }
+
     for (float x = -Terrain::TERRAIN_SIZE / 2; x < Terrain::TERRAIN_SIZE / 2; x += fenceSize) {
         auto* fence = new Entity(&fenceModel);
         fence->setPosition(vec3(x, 0.0f, Terrain::TERRAIN_SIZE / 2 - 1.0f));
@@ -243,6 +305,9 @@ int main(int argc, char** argv) {
     // Create the object for handling rendering to texture for shadows.
     ShadowMap shadowMap(player, lights[0], 4096);
 
+    bool check[4] = {0};
+    int checkpoints[4][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+    auto start = high_resolution_clock::now();
     // Main logic/render loop.
     while (!glfwWindowShouldClose(window.get_window())) {
         GameTime::getGameTime()->update();
@@ -271,6 +336,45 @@ int main(int argc, char** argv) {
 
         glfwSwapBuffers(window.get_window());
         glfwPollEvents();
+        float x = player->getPosition().x;
+        float z = player->getPosition().z;
+
+        int out = 1;
+        if (abs(x) < 125 && abs(z) < 125) {
+            out = 0;
+        }
+        if (abs(x) < 98 && abs(z) < 98) {
+            out = 1;
+        }
+        player->penalty += out;
+
+        for (int i = 0; i < 4; i++) {
+            if (check[i] == 0) {
+                int x1 = 105 * checkpoints[i][0];
+                int z1 = 105 * checkpoints[i][1];
+                int dist = abs(x - x1) + abs(z - z1);
+                if (dist < 20) {
+                    check[i] = 1;
+                    std::cout << "Checkpoint " << i + 1 << " reached!" << std::endl;
+                }
+            }
+        }
+        if (check[0] && check[1] && check[2] && check[3]) {
+            if (x > 0 && abs(z + 112) < 12) {
+                std::cout << "Lap Complete!" << std::endl;
+                std::cout << "Penalty: " << player->penalty << std::endl;
+                auto stop = high_resolution_clock::now();
+                auto duration = duration_cast<seconds>(stop - start);
+                std::cout << "Time Taken: " << duration.count() << std::endl;
+                for (int i = 0; i < 4; i++) {
+                    check[i] = 0;
+                }
+                int score = 100000/duration.count() - player->penalty;
+                std::cout << "Score: " << score << std::endl;
+                player->penalty = 0;
+                start = high_resolution_clock::now();
+            }
+        }
     }
 
     // Cleanup program, delete all the dynamic entities.
