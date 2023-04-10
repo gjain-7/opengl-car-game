@@ -65,7 +65,24 @@ int main(int argc, char** argv) {
             } else {
                 lights[1]->radius = 0.0f;
             }
-        } else {
+        }
+        if (key == GLFW_KEY_I && action == GLFW_PRESS){
+            std::cout<<"TOP VIEW\n";
+            input.iKeyPressed = true;
+        }
+        if (key == GLFW_KEY_J && action == GLFW_PRESS){
+            std::cout<<"LEFT VIEW\n";
+            input.jKeyPressed = true;
+        }
+        if (key == GLFW_KEY_L && action == GLFW_PRESS){
+            std::cout<<"RIGHT VIEW\n";
+            input.lKeyPressed = true;
+        }
+        if (key == GLFW_KEY_K && action == GLFW_PRESS){
+            std::cout<<"BOTTOM VIEW\n";
+            input.kKeyPressed = true;
+        }
+         else {
             player->handleKeyboardEvents(window, key, action);
         }
     });

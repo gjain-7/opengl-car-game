@@ -6,6 +6,10 @@ struct InputState {
     InputState()
         : lMousePressed(false)
         , rMousePressed(false)
+        , iKeyPressed(false)
+        , jKeyPressed(false)
+        , lKeyPressed(false)
+        , kKeyPressed(false)
         , prevX(0)
         , prevY(0)
         , deltaX(0)
@@ -18,6 +22,12 @@ struct InputState {
     bool lMousePressed;
     bool rMousePressed;
 
+    // Views of the car
+
+    bool iKeyPressed;
+    bool jKeyPressed
+    bool lKeyPressed
+    bool kKeyPressed
     // Last known position of the cursor
     float prevX;
     float prevY;
@@ -28,6 +38,7 @@ struct InputState {
 
     float scrollDeltaX;
     float scrollDeltaY;
+
 
     // Update cursor variables based on new position x,y
     void update(float x, float y) {
