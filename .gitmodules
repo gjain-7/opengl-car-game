@@ -1,3 +1,6 @@
 [submodule "extern/fmt"]
 	path = extern/fmt
-	url = https://github.com/fmtlib/fmt.git
+	url = git@github.com:fmtlib/fmt.git
+[submodule "extern/freetype"]
+	path = extern/freetype
+	url = git@github.com:freetype/freetype.git

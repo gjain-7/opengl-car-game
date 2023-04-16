@@ -8,6 +8,7 @@
 #include "particles/ParticleManager.h"
 #include "particles/ParticleSystem.h"
 #include "Window.h"
+#include <renderers/TextRenderer.h>
 
 #include <iostream>
 #include <vector>
@@ -53,7 +54,9 @@ int main(int argc, char** argv) {
     if (basic_controls) {
         std::cout << "Controls: \n\tw - forward\n\ts - backwards\n\ta/d - turn left/right" << std::endl;
     } else {
-        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake\n\tt - top view\n\ti - front view\n\tj - left view\n\tl - right view\n\tk - back view\n\tr - rest to original view\n\th - toggle headlight"
+        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake\n\tt - "
+                     "top view\n\ti - front view\n\tj - left view\n\tl - right view\n\tk - back view\n\tr - rest to "
+                     "original view\n\th - toggle headlight"
                   << std::endl;
     }
 
@@ -71,57 +74,56 @@ int main(int argc, char** argv) {
             }
             std::cout << "Player Position: " << glm::to_string(player->getPosition()) << std::endl;
             std::cout << "Penalty: " << player->penalty << "\n";
-            
+
         }
 
         // top view
-        else if (key == GLFW_KEY_T){
-            if(action == GLFW_PRESS)
+        else if (key == GLFW_KEY_T) {
+            if (action == GLFW_PRESS)
                 input.tKeyPressed = true;
-            else if(action == GLFW_RELEASE)
+            else if (action == GLFW_RELEASE)
                 input.tKeyPressed = false;
         }
 
         // left view
-        else if (key == GLFW_KEY_J){
-            if(action == GLFW_PRESS)
+        else if (key == GLFW_KEY_J) {
+            if (action == GLFW_PRESS)
                 input.jKeyPressed = true;
-            else if(action == GLFW_RELEASE)
+            else if (action == GLFW_RELEASE)
                 input.jKeyPressed = false;
         }
 
         // right view
-        else if (key == GLFW_KEY_L){
-            if(action == GLFW_PRESS)
+        else if (key == GLFW_KEY_L) {
+            if (action == GLFW_PRESS)
                 input.lKeyPressed = true;
-            else if(action == GLFW_RELEASE)
+            else if (action == GLFW_RELEASE)
                 input.lKeyPressed = false;
         }
 
         // back view
-        else if (key == GLFW_KEY_K){
-            if(action == GLFW_PRESS)
+        else if (key == GLFW_KEY_K) {
+            if (action == GLFW_PRESS)
                 input.kKeyPressed = true;
-            else if(action == GLFW_RELEASE)
+            else if (action == GLFW_RELEASE)
                 input.kKeyPressed = false;
         }
 
         // front view
-        else if (key == GLFW_KEY_I){
-            if(action == GLFW_PRESS)
+        else if (key == GLFW_KEY_I) {
+            if (action == GLFW_PRESS)
                 input.iKeyPressed = true;
-            else if(action == GLFW_RELEASE)
+            else if (action == GLFW_RELEASE)
                 input.iKeyPressed = false;
         }
 
         // reset to original view
-        else if (key == GLFW_KEY_R){
-            if(action == GLFW_PRESS)
+        else if (key == GLFW_KEY_R) {
+            if (action == GLFW_PRESS)
                 input.rKeyPressed = true;
-            else if(action == GLFW_RELEASE)
+            else if (action == GLFW_RELEASE)
                 input.rKeyPressed = false;
-        }
-        else {
+        } else {
             player->handleKeyboardEvents(window, key, action);
         }
     });
@@ -169,6 +171,13 @@ int main(int argc, char** argv) {
     Model fenceModel = Loader::getLoader()->loadModel("res/fence/fence.obj");
     Model coneModel = Loader::getLoader()->loadModel("res/cone/cone2_obj.obj");
     Model treeModel = Loader::getLoader()->loadModel("res/tree/PineTree03.obj");
+
+    // Load text
+    int err = LoadFont("res/fonts/Antonio-Bold.ttf");
+    if (err != 0)
+        return -1;
+    Shader shader("shaders/text.vs", "shaders/text.fs");
+    LoadShader(shader, window.get_width(), window.get_height());
 
     // Create the skybox with the textures defined.
     SkyboxRenderer skybox(skyboxTextures, SKYBOX_SIZE);
@@ -347,7 +356,7 @@ int main(int argc, char** argv) {
 
         // Render entire scene
         manager.render(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
-            window.get_height());
+            window.get_height(), shader);
 
         // Updates all particles and entities.
         ParticleManager::getParticleManager()->update();
@@ -401,7 +410,7 @@ int main(int argc, char** argv) {
                 for (int i = 0; i < 4; i++) {
                     check[i] = 0;
                 }
-                int score = 100000/duration.count() - player->penalty;
+                int score = 100000 / duration.count() - player->penalty;
                 std::cout << "Score: " << score << std::endl;
                 player->penalty = 0;
                 start = high_resolution_clock::now();

@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(extern EXCLUDE_FROM_ALL)
+add_subdirectory(extern/freetype)
+
+configure_file(root_directory.h.in root_directory.h)
 
 set(all_headers
   constants.h
@@ -17,6 +20,7 @@ set(all_headers
   entities/Player.h
   entities/Terrain.h
   FrameBuffer.h
+  FileSystem.h
   GameTime.h
   glm_ext.h
   InputState.h
@@ -31,6 +35,7 @@ set(all_headers
   renderers/RenderManager.h
   renderers/SkyboxRenderer.h
   renderers/TerrainRenderer.h
+  renderers/TextRenderer.h
   shaders/EntityShader.h
   shaders/ShaderProgram.h
   shaders/SkyboxShader.h
@@ -60,6 +65,7 @@ set(all_sources
   renderers/RenderManager.cpp
   renderers/SkyboxRenderer.cpp
   renderers/TerrainRenderer.cpp
+  renderers/TextRenderer.cpp
   shaders/EntityShader.cpp
   shaders/ShaderProgram.cpp
   shaders/SkyboxShader.cpp
@@ -75,8 +81,9 @@ find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 
 add_executable(opengl-car-game ${all_sources} ${all_headers})
-target_link_libraries(opengl-car-game PRIVATE glad::glad OpenGL::GL glfw fmt::fmt stb_image tiny_obj_loader ${CMAKE_DL_LIBS})
+target_link_libraries(opengl-car-game PRIVATE glad::glad OpenGL::GL glfw fmt::fmt stb_image tiny_obj_loader freetype ${CMAKE_DL_LIBS})
 target_include_directories(opengl-car-game PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(opengl-car-game PUBLIC ${PROJECT_BINARY_DIR})
 
 # Vcpkg exports the target, but the default find_package does not. This is a
 # quick hack since the dependencies on Windows are usually with vcpkg and usually
@@ -133,4 +140,6 @@ target_add_shader(opengl-car-game ${PROJECT_BINARY_DIR}/shaders/
   ${CMAKE_CURRENT_LIST_DIR}/shaders/skybox.vert
   ${CMAKE_CURRENT_LIST_DIR}/shaders/terrain.frag
   ${CMAKE_CURRENT_LIST_DIR}/shaders/terrain.vert
+  ${CMAKE_CURRENT_LIST_DIR}/shaders/text.fs
+  ${CMAKE_CURRENT_LIST_DIR}/shaders/text.vs
 )
