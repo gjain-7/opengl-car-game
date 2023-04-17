@@ -79,6 +79,7 @@ set(all_sources
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
+set(IRRKLANG_DIR ${CMAKE_CURRENT_LIST_DIR}/extern/irrKlang/bin/linux-gcc-64)
 
 add_executable(opengl-car-game ${all_sources} ${all_headers})
 target_link_libraries(opengl-car-game PRIVATE glad::glad OpenGL::GL glfw fmt::fmt stb_image tiny_obj_loader freetype ${CMAKE_DL_LIBS})

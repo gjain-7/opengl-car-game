@@ -46,10 +46,6 @@ constexpr float wheelBase = cgToFrontAxle + cgToRearAxle;         // set from ax
 constexpr float axleWeightRatioFront = cgToRearAxle / wheelBase;  // % car weight on the front axle
 constexpr float axleWeightRatioRear = cgToFrontAxle / wheelBase;  // % car weight on the rear axle
 
-float clamp(float val, float min, float max) {
-    return std::max(min, std::min(max, val));
-}
-
 Player::Player(Model* model, Terrain* terrain, bool basic_controls) : Entity(model) {
     this->terrain = terrain;
     this->absVel = 0.0f;
@@ -139,9 +135,9 @@ bool Player::update() {
         float tireGripRear = tireGrip * (1.f - ebrake_input * (1.f - lockGrip));  // reduce rear grip when ebrake is on
 
         float frictionForceFront_cy =
-            clamp(-cornerStiffnessFront * slipAngleFront, -tireGripFront, tireGripFront) * axleWeightFront;
+            glm::clamp(-cornerStiffnessFront * slipAngleFront, -tireGripFront, tireGripFront) * axleWeightFront;
         float frictionForceRear_cy =
-            clamp(-cornerStiffnessRear * slipAngleRear, -tireGripRear, tireGripRear) * axleWeightRear;
+            glm::clamp(-cornerStiffnessRear * slipAngleRear, -tireGripRear, tireGripRear) * axleWeightRear;
 
         //  Get amount of brake/throttle from our inputs
         float brake = std::min(brake_input * brakeForce + ebrake_input * eBrakeForce, brakeForce);
@@ -232,7 +228,7 @@ float Player::smoothSteering(float inputAngle) {
 
     if (abs(inputAngle) > 0.001) {
         smoothedAngle =
-            clamp((float)(steerAngle + inputAngle * dt * CHANGE_MODIFIER), -ROTATION_SPEED, ROTATION_SPEED);
+            glm::clamp((float)(steerAngle + inputAngle * dt * CHANGE_MODIFIER), -ROTATION_SPEED, ROTATION_SPEED);
     } else {
         //  No steer input - move toward centre (0)
         if (steerAngle > 0) {

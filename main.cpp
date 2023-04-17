@@ -20,16 +20,41 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <chrono>
-
+#include <thread>
+#include <map>
+// #include <irrKlang/include/irrKlang.h>
+// using namespace irrklang;
 using namespace glm;
 using namespace std::chrono;
 
 constexpr float SKYBOX_SIZE = 200.0f;
+bool terminate = 1;
+
+// ISoundEngine *SoundEngine = createIrrKlangDevice();
 
 auto setProjection(int inputWinX, int inputWinY) {
     // float aspect = (float) winX / winY;
     // FOV angle is in radians
     return glm::perspective(constants::PI / 4.0, double(inputWinX) / double(inputWinY), 1.0, 800.0);
+}
+
+void thread_function(std::map<std::string, float> &m) {
+    float x = 0.0, z = 0.0;
+    // SoundEngine->play2D("audio/breakout.mp3", true);
+    while(terminate) {
+        // sleep for a second
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::cout << "fps: " << m["fps"] << "\n";
+        float angle = atan2(m["z"], m["x"]) - atan2(z, x);
+        // std::cout << "angle: " << angle << "\n";
+        if(abs(angle) < 1) { // don't consider points where tan inverse blows up
+            if(angle < 0) {
+                std::cout << "Wrong Way!\n";
+            }
+        }
+        x = m["x"];
+        z = m["z"];
+    }
 }
 
 int main(int argc, char** argv) {
@@ -42,12 +67,10 @@ int main(int argc, char** argv) {
     std::vector<Entity*> entities;
     // Vector to hold lights
     std::vector<Light*> lights;
-
     if (argc != 2) {
         std::cerr << "USAGE: " << argv[0] << " basic|physics" << std::endl;
         exit(1);
     }
-
     // Check if desired controls are basic or physics
     bool basic_controls = strcmp(argv[1], "basic") == 0;
 
@@ -59,7 +82,7 @@ int main(int argc, char** argv) {
                      "original view\n\th - toggle headlight"
                   << std::endl;
     }
-
+    
     window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
         // Terminate program if escape is pressed
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -68,13 +91,21 @@ int main(int argc, char** argv) {
         // on/off headlights
         else if (key == GLFW_KEY_H && action == GLFW_PRESS) {
             if (lights[1]->radius == 0.0f) {
-                lights[1]->radius = 10.0f;
+                lights[1]->radius = 15.0f;
             } else {
                 lights[1]->radius = 0.0f;
             }
             std::cout << "Player Position: " << glm::to_string(player->getPosition()) << std::endl;
             std::cout << "Penalty: " << player->penalty << "\n";
 
+        } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+            if (lights[0]->diffuse == vec3(0.7f, 0.7f, 0.7f)) {
+                lights[0]->diffuse = vec3(0.1f, 0.1f, 0.1f);
+                lights[1]->radius = 15.0f;
+            } else {
+                lights[0]->diffuse = vec3(0.7f, 0.7f, 0.7f);
+                lights[1]->radius = 0.0f;
+            }
         }
 
         // top view
@@ -215,11 +246,11 @@ int main(int argc, char** argv) {
     lights.push_back(sun);
 
     headlight->position = vec4(2.0f, 8.0f, 0.0f, 1.0f);
-    headlight->specular = vec3(0.8f, 0.8f, 0.4f);
-    headlight->diffuse = vec3(0.8f, 0.8f, 0.4f);
+    headlight->specular = vec3(1.0f, 1.0f, 1.0f);
+    headlight->diffuse = vec3(2.0f, 2.0f, 2.0f);
     headlight->coneDirection = vec3(0.0f, -1.0f, 0.0f);
-    headlight->coneAngle = constants::PI / 4.f;
-    headlight->radius = 10.0f;
+    headlight->coneAngle = constants::PI / 8.f;
+    headlight->radius = 0.0f;
     lights.push_back(headlight);
 
     // Adds entities to random positions on the map
@@ -349,9 +380,14 @@ int main(int argc, char** argv) {
     bool check[4] = {0};
     int checkpoints[4][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
     auto start = high_resolution_clock::now();
+    std::map<std::string, float> m;
+    std::thread t(&thread_function, std::ref(m));
+
     // Main logic/render loop.
     while (!glfwWindowShouldClose(window.get_window())) {
+        m["fps"] = GameTime::getGameTime()->getFPS();
         GameTime::getGameTime()->update();
+        // std::cout << "FPS: " << GameTime::getGameTime()->getFPS() << std::endl;
         cam->update(input);
 
         // Render entire scene
@@ -379,7 +415,8 @@ int main(int argc, char** argv) {
         glfwPollEvents();
         float x = player->getPosition().x;
         float z = player->getPosition().z;
-
+        m["x"] = x;
+        m["z"] = z;
         int out = 1;
         if (abs(x) < 125 && abs(z) < 125) {
             out = 0;
@@ -411,14 +448,16 @@ int main(int argc, char** argv) {
                     check[i] = 0;
                 }
                 int score = 100000 / duration.count() - player->penalty;
+                score = max(0, score);
                 std::cout << "Score: " << score << std::endl;
                 player->penalty = 0;
                 start = high_resolution_clock::now();
             }
         }
     }
-
+    terminate = 0;
     // Cleanup program, delete all the dynamic entities.
+    t.join();
     delete player;
     delete water;
     for (auto* entity : entities) {

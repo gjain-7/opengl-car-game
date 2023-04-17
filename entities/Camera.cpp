@@ -53,48 +53,48 @@ PlayerCamera::PlayerCamera(Player* player) {
 
 void PlayerCamera::update(InputState& input) {
     m_distance -= input.scrollDeltaY;
-    m_distance = std::clamp(m_distance, 2.5f, 20.0f);
-
+    m_distance = glm::clamp(m_distance, 2.5f, 20.0f);
 
     // top view
     if (input.tKeyPressed) {
-        m_pitch=1.570796;
-        m_angle_around=0.000000;
+        m_pitch = 1.570796;
+        m_angle_around = 0.000000;
     }
 
     // left view
     if (input.jKeyPressed) {
-        m_pitch=0.220000;
-        m_angle_around=-1.520000;
+        m_pitch = 0.220000;
+        m_angle_around = -1.520000;
     }
 
     // right view
     if (input.lKeyPressed) {
-        m_pitch=0.220000;
-        m_angle_around=1.520000;
+        m_pitch = 0.220000;
+        m_angle_around = 1.520000;
     }
 
     // back view
     if (input.kKeyPressed) {
-        m_pitch=0.100000;
-        m_angle_around=0.000000;
+        m_pitch = 0.100000;
+        m_angle_around = 0.000000;
     }
 
     // reset to original view
     if (input.rKeyPressed) {
-        m_pitch=constants::PI / 8.f;;
-        m_angle_around=0.000000;
-        m_distance=5.0f;
+        m_pitch = constants::PI / 8.f;
+        ;
+        m_angle_around = 0.000000;
+        m_distance = 5.0f;
     }
 
     if (input.iKeyPressed) {
-        m_pitch=0.220000;
-        m_angle_around=-3.120000;
+        m_pitch = 0.220000;
+        m_angle_around = -3.120000;
     }
 
     if (input.lMousePressed) {
         m_pitch -= input.deltaY / 50;
-        m_pitch = std::clamp(m_pitch, 0.1f, constants::PI / 2 - 0.0001f);
+        m_pitch = glm::clamp(m_pitch, 0.1f, constants::PI / 2 - 0.0001f);
 
         m_angle_around -= input.deltaX / 50.0f;
 
@@ -135,6 +135,5 @@ void PlayerCamera::update(InputState& input) {
     look(m_focal_point);
 }
 
-
-// m_angle_around angle 
+// m_angle_around angle
 // dependent on angle : offsetX offsetZ
