@@ -1,14 +1,15 @@
 #include "RenderManager.h"
 
 #include <glad/glad.h>
+#include <iomanip> // for std::setprecision
 #include "../particles/Particle.h"
 #include "../particles/ParticleManager.h"
 #include "../particles/ParticleSystem.h"
 
-
 const float WATER_PLANE_HEIGHT = 0.398918f;
 
-RenderManager::RenderManager() : reflectionBuffer(640, 320), refractionBuffer(1280, 720) {
+RenderManager::RenderManager(int winX, int winY)
+    : reflectionBuffer(640, 320), refractionBuffer(1280, 720), textRenderer(winX, winY) {
     reflectionBuffer.addColourTexture();
     reflectionBuffer.addDepthBuffer();
 
@@ -17,8 +18,8 @@ RenderManager::RenderManager() : reflectionBuffer(640, 320), refractionBuffer(12
 }
 
 void RenderManager::render(const std::vector<Entity*>& entities, const std::vector<Light*>& lights, Terrain* terrain,
-    Entity* water, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection,
-    int winX, int winY, Shader& shader) {
+    Entity* water, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX,
+    int winY) {
     // SHADOW PASS
     glDisable(GL_CLIP_DISTANCE0);
     shadowMap.bind();
@@ -63,7 +64,7 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
     waterRenderer.render(water, cam->getViewMtx(), projection, refractionBuffer.getColourTexture(),
         reflectionBuffer.getColourTexture(), cam->getPosition(), lights[0]);
 
-    RenderText(shader, "This is sample text", 600.0f, 400.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
-    // RenderText(shader, "(C) LearnOpenGL.com", .0f, 100.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
-
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(2) << ((Player*)entities[0])->getSpeed();
+    textRenderer.render("Speed: " + out.str(), 540.0f, 450.0f, 0.4f, glm::vec3(0, 0, 0));
 }

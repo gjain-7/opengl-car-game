@@ -8,7 +8,6 @@
 #include "particles/ParticleManager.h"
 #include "particles/ParticleSystem.h"
 #include "Window.h"
-#include <renderers/TextRenderer.h>
 
 #include <iostream>
 #include <vector>
@@ -203,16 +202,9 @@ int main(int argc, char** argv) {
     Model coneModel = Loader::getLoader()->loadModel("res/cone/cone2_obj.obj");
     Model treeModel = Loader::getLoader()->loadModel("res/tree/PineTree03.obj");
 
-    // Load text
-    int err = LoadFont("res/fonts/Antonio-Bold.ttf");
-    if (err != 0)
-        return -1;
-    Shader shader("shaders/text.vs", "shaders/text.fs");
-    LoadShader(shader, window.get_width(), window.get_height());
-
     // Create the skybox with the textures defined.
     SkyboxRenderer skybox(skyboxTextures, SKYBOX_SIZE);
-    RenderManager manager;
+    RenderManager manager(window.get_width(), window.get_height());
 
     // Create Terrain using blend map, height map and all of the remaining texture components.
     std::vector<std::string> terrainImages = {"res/terrain/blend_map.png", "res/terrain/grass.jpg",
@@ -392,7 +384,7 @@ int main(int argc, char** argv) {
 
         // Render entire scene
         manager.render(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
-            window.get_height(), shader);
+            window.get_height());
 
         // Updates all particles and entities.
         ParticleManager::getParticleManager()->update();

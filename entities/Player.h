@@ -40,8 +40,10 @@ class Player : public Entity {
     float getThrottle() const;
     float getBrake() const;
     float getSteer() const;
+    float getSpeed() const;
     float absVel;
     int penalty;
 
     void handleKeyboardEvents(GLFWwindow* window, int key, int action);
+
 };

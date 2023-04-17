@@ -85,8 +85,6 @@ float Player::getSteer() const {
     return steerAngle;
 }
 
-
-
 bool Player::update() {
     steerAngle = smoothSteering(steerChange);
     float dt = GameTime::getGameTime()->getDt();
@@ -278,4 +276,8 @@ void Player::handleKeyboardEvents(GLFWwindow* /*window*/, int key, int action) {
             steerChange = 0.0f;
         }
     }
+}
+
+float Player::getSpeed() const {
+    return glm::sqrt(velocity_c.x * velocity_c.x + velocity_c.y * velocity_c.y);
 }
