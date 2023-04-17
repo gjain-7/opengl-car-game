@@ -460,7 +460,6 @@ int main(int argc, char** argv) {
     terminate = 0;
     // Cleanup program, delete all the dynamic entities.
     t.join();
-    delete player;
     delete water;
     for (auto* entity : entities) {
         delete entity;
