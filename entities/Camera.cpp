@@ -123,7 +123,7 @@ void PlayerCamera::update(InputState& input) {
 
     float angle = m_angle_around + m_player->getRotationY();
 
-    float hDist = m_distance * glm::cos(m_pitch);
+    float hDist = std::max(0.000500f,m_distance * glm::cos(m_pitch));
     float vDist = m_distance * glm::sin(m_pitch);
     float offsetX = hDist * glm::sin(angle);
     float offsetZ = hDist * glm::cos(angle);

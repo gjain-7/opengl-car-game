@@ -63,7 +63,7 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
     waterRenderer.render(water, cam->getViewMtx(), projection, refractionBuffer.getColourTexture(),
         reflectionBuffer.getColourTexture(), cam->getPosition(), lights[0]);
 
-    RenderText(shader, "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
-    RenderText(shader, "(C) LearnOpenGL.com", 100.0f, 100.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
+    RenderText(shader, "This is sample text", 600.0f, 400.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+    // RenderText(shader, "(C) LearnOpenGL.com", .0f, 100.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
 
 }

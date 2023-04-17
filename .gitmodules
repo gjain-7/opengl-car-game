@@ -3,4 +3,4 @@
 	url = git@github.com:fmtlib/fmt.git
 [submodule "extern/freetype"]
 	path = extern/freetype
-	url = git@github.com:freetype/freetype.git
+	url = https://github.com/freetype/freetype.git
