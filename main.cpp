@@ -37,22 +37,26 @@ auto setProjection(int inputWinX, int inputWinY) {
     return glm::perspective(constants::PI / 4.0, double(inputWinX) / double(inputWinY), 1.0, 800.0);
 }
 
-void thread_function(std::map<std::string, float> &m) {
+void thread_function(std::map<std::string, float>& threadData) {
     float x = 0.0, z = 0.0;
     // SoundEngine->play2D("audio/breakout.mp3", true);
-    while(terminate) {
+    while (terminate) {
         // sleep for a second
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        std::cout << "fps: " << m["fps"] << "\n";
-        float angle = atan2(m["z"], m["x"]) - atan2(z, x);
+        threadData["fps"] = GameTime::getGameTime()->getFPS();
+        // std::cout << "fps: " << threadData["fps"] << "\n";
+        float angle = atan2(threadData["z"], threadData["x"]) - atan2(z, x);
         // std::cout << "angle: " << angle << "\n";
-        if(abs(angle) < 1) { // don't consider points where tan inverse blows up
-            if(angle < 0) {
-                std::cout << "Wrong Way!\n";
+        if (abs(angle) < 1) {  // don't consider points where tan inverse blows up
+            if (angle < 0) {
+                // std::cout << "Wrong Way!\n";
+                threadData["wrong_way"] = 1;
+            } else {
+                threadData["wrong_way"] = 0;
             }
         }
-        x = m["x"];
-        z = m["z"];
+        x = threadData["x"];
+        z = threadData["z"];
     }
 }
 
@@ -81,7 +85,7 @@ int main(int argc, char** argv) {
                      "original view\n\th - toggle headlight"
                   << std::endl;
     }
-    
+
     window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
         // Terminate program if escape is pressed
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -94,9 +98,6 @@ int main(int argc, char** argv) {
             } else {
                 lights[1]->radius = 0.0f;
             }
-            std::cout << "Player Position: " << glm::to_string(player->getPosition()) << std::endl;
-            std::cout << "Penalty: " << player->penalty << "\n";
-
         } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
             if (lights[0]->diffuse == vec3(0.7f, 0.7f, 0.7f)) {
                 lights[0]->diffuse = vec3(0.1f, 0.1f, 0.1f);
@@ -372,19 +373,21 @@ int main(int argc, char** argv) {
     bool check[4] = {0};
     int checkpoints[4][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
     auto start = high_resolution_clock::now();
-    std::map<std::string, float> m;
-    std::thread t(&thread_function, std::ref(m));
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>(stop - start);
+
+    std::map<std::string, float> threadData;
+    std::thread t(&thread_function, std::ref(threadData));
 
     // Main logic/render loop.
     while (!glfwWindowShouldClose(window.get_window())) {
-        m["fps"] = GameTime::getGameTime()->getFPS();
         GameTime::getGameTime()->update();
         // std::cout << "FPS: " << GameTime::getGameTime()->getFPS() << std::endl;
         cam->update(input);
 
         // Render entire scene
         manager.render(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
-            window.get_height());
+            window.get_height(), threadData);
 
         // Updates all particles and entities.
         ParticleManager::getParticleManager()->update();
@@ -407,8 +410,8 @@ int main(int argc, char** argv) {
         glfwPollEvents();
         float x = player->getPosition().x;
         float z = player->getPosition().z;
-        m["x"] = x;
-        m["z"] = z;
+        threadData["x"] = x;
+        threadData["z"] = z;
         int out = 1;
         if (abs(x) < 125 && abs(z) < 125) {
             out = 0;
@@ -417,6 +420,9 @@ int main(int argc, char** argv) {
             out = 1;
         }
         player->penalty += out;
+        stop = high_resolution_clock::now();
+        duration = duration_cast<seconds>(stop - start);
+        threadData["time"] = duration.count();
 
         for (int i = 0; i < 4; i++) {
             if (check[i] == 0) {
@@ -425,23 +431,27 @@ int main(int argc, char** argv) {
                 int dist = abs(x - x1) + abs(z - z1);
                 if (dist < 20) {
                     check[i] = 1;
-                    std::cout << "Checkpoint " << i + 1 << " reached!" << std::endl;
+                    // std::cout << "Checkpoint " << i + 1 << " reached!" << std::endl;
+                    player->checkpoint = i + 1;
                 }
             }
         }
         if (check[0] && check[1] && check[2] && check[3]) {
             if (x > 0 && abs(z + 112) < 12) {
-                std::cout << "Lap Complete!" << std::endl;
-                std::cout << "Penalty: " << player->penalty << std::endl;
-                auto stop = high_resolution_clock::now();
-                auto duration = duration_cast<seconds>(stop - start);
-                std::cout << "Time Taken: " << duration.count() << std::endl;
+                // std::cout << "Lap Complete!" << std::endl;
+                // std::cout << "Penalty: " << player->penalty << std::endl;
+                stop = high_resolution_clock::now();
+                duration = duration_cast<seconds>(stop - start);
+                // std::cout << "Time Taken: " << duration.count() << std::endl;
                 for (int i = 0; i < 4; i++) {
                     check[i] = 0;
                 }
+                player->checkpoint = 0;
                 int score = 100000 / duration.count() - player->penalty;
                 score = max(0, score);
-                std::cout << "Score: " << score << std::endl;
+                player->score += score;
+                // std::cout << "Score: " << score << std::endl;
+                player->lap += 1;
                 player->penalty = 0;
                 start = high_resolution_clock::now();
             }

@@ -43,6 +43,9 @@ class Player : public Entity {
     float getSpeed() const;
     float absVel;
     int penalty;
+    int score;
+    int lap;
+    int checkpoint;
 
     void handleKeyboardEvents(GLFWwindow* window, int key, int action);
 

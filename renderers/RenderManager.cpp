@@ -1,7 +1,7 @@
 #include "RenderManager.h"
 
 #include <glad/glad.h>
-#include <iomanip> // for std::setprecision
+#include <iomanip>  // for std::setprecision
 #include "../particles/Particle.h"
 #include "../particles/ParticleManager.h"
 #include "../particles/ParticleSystem.h"
@@ -19,7 +19,7 @@ RenderManager::RenderManager(int winX, int winY)
 
 void RenderManager::render(const std::vector<Entity*>& entities, const std::vector<Light*>& lights, Terrain* terrain,
     Entity* water, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX,
-    int winY) {
+    int winY, std::map<std::string, float> &threadData) {
     // SHADOW PASS
     glDisable(GL_CLIP_DISTANCE0);
     shadowMap.bind();
@@ -65,6 +65,21 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
         reflectionBuffer.getColourTexture(), cam->getPosition(), lights[0]);
 
     std::ostringstream out;
-    out << std::fixed << std::setprecision(2) << ((Player*)entities[0])->getSpeed();
+    Player* player = (Player*)entities[0];
+    out << std::fixed << std::setprecision(2) << player->getSpeed();
     textRenderer.render("Speed: " + out.str(), 540.0f, 450.0f, 0.4f, glm::vec3(0, 0, 0));
+    out.str("");
+    out << std::fixed << std::setprecision(2) << threadData["fps"];
+    textRenderer.render("FPS: " + out.str(), 540.0f, 400.0f, 0.4f, glm::vec3(0, 0, 0));
+    out.str("");
+    out << std::fixed << std::setprecision(0) << threadData["time"];
+    textRenderer.render("Lap Time: " + out.str(), 540.0f, 350.0f, 0.4f, glm::vec3(0, 0, 0));
+    out.str("");
+    textRenderer.render("Score: " + std::to_string(player->score), 10.0f, 450.0f, 0.4f, glm::vec3(0, 0, 0));
+    textRenderer.render("Penalty: " + std::to_string(player->penalty), 10.0f, 400.0f, 0.4f, glm::vec3(0, 0, 0));
+    textRenderer.render("Last Checkpoint: " + std::to_string(player->checkpoint), 10.0f, 350.0f, 0.4f, glm::vec3(0, 0, 0));
+    textRenderer.render("Lap: " + std::to_string(player->lap), 10.0f, 300.0f, 0.4f, glm::vec3(0, 0, 0));
+    if (threadData["wrong_way"] == 1) {
+        textRenderer.render("Wrong Way!", 220.0f, 400.0f, 1.0f, glm::vec3(1, 0, 0));
+    }
 }
