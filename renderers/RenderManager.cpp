@@ -61,9 +61,7 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
     renderer.render(entities, lights, cam->getViewMtx(), projection, skybox.getSkyboxTexture(), shadowMap.getView(),
         shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, 10000));
     ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
-    waterRenderer.render(water, cam->getViewMtx(), projection, refractionBuffer.getColourTexture(),
-        reflectionBuffer.getColourTexture(), cam->getPosition(), lights[0]);
-
+    
     std::ostringstream out;
     Player* player = (Player*)entities[0];
     out << std::fixed << std::setprecision(2) << player->getSpeed();
@@ -82,4 +80,63 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
     if (threadData["wrong_way"] == 1) {
         textRenderer.render("Wrong Way!", 220.0f, 400.0f, 1.0f, glm::vec3(1, 0, 0));
     }
+}
+
+void RenderManager::renderMenu(const std::vector<Entity*>& entities, const std::vector<Light*>& lights, Terrain* terrain,
+    Entity* water, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX,
+    int winY) {
+    // SHADOW PASS
+    glDisable(GL_CLIP_DISTANCE0);
+    shadowMap.bind();
+    renderer.render(entities, lights, shadowMap.getView(), shadowMap.getProjection(), skybox.getSkyboxTexture(),
+        glm::vec4(0, 1, 0, 10000));
+    shadowMap.unbind();
+
+    // REFRACTION PASS
+    glEnable(GL_CLIP_DISTANCE0);
+    refractionBuffer.bind();
+    terrainRenderer.render(terrain, lights, cam->getViewMtx(), projection, shadowMap.getView(),
+        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, -1, 0, water->getPosition().y));
+    skybox.render(cam->getViewMtx(), projection);
+    renderer.render(entities, lights, cam->getViewMtx(), projection, skybox.getSkyboxTexture(), shadowMap.getView(),
+        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, -1, 0, water->getPosition().y));
+    ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
+    refractionBuffer.unbind();
+
+    // REFLECTION PASS
+    glEnable(GL_CLIP_DISTANCE0);
+    glm::mat4 invView = cam->getInverted(WATER_PLANE_HEIGHT);
+    reflectionBuffer.bind();
+    terrainRenderer.render(terrain, lights, invView, projection, shadowMap.getView(), shadowMap.getProjection(),
+        shadowMap.getTextureID(), glm::vec4(0, 1, 0, -water->getPosition().y));
+    skybox.render(invView, projection);
+    renderer.render(entities, lights, invView, projection, skybox.getSkyboxTexture(), shadowMap.getView(),
+        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, -water->getPosition().y));
+    ParticleManager::getParticleManager()->render(invView, projection);
+    reflectionBuffer.unbind();
+
+    // NORMAL PASS
+    glDisable(GL_CLIP_DISTANCE0);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, winX, winY);
+
+    terrainRenderer.render(terrain, lights, cam->getViewMtx(), projection, shadowMap.getView(),
+        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, 10000));
+    skybox.render(cam->getViewMtx(), projection);
+    renderer.render(entities, lights, cam->getViewMtx(), projection, skybox.getSkyboxTexture(), shadowMap.getView(),
+        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, 10000));
+    ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
+    terrainRenderer.render(terrain, lights, cam->getViewMtx(), projection, shadowMap.getView(),
+        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, 10000));
+    skybox.render(cam->getViewMtx(), projection);
+    ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
+    textRenderer.render("Welcome to New Formula Speed!", 30.0f, 400.0f, 1.0f, glm::vec3(0, 0, 0));
+    textRenderer.render("Instructions", 30.0f, 350.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("W/A/S/D : Throttle/Left/Right/Brake", 30.0f, 310.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("Space : HandBrake", 30.0f, 270.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("I/J/K/L/T : Change Camera", 30.0f, 230.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("R : Reset Camera", 30.0f, 190.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("N : Night Mode", 30.0f, 150.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("H : Toggle Headlights", 30.0f, 110.0f, 0.5f, glm::vec3(0, 0, 0));
+    textRenderer.render("Hit Enter to Start!", 200.0f, 50.0f, 0.8f, glm::vec3(0, 0, 0));
 }

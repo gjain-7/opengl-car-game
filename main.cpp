@@ -27,9 +27,7 @@ using namespace glm;
 using namespace std::chrono;
 
 constexpr float SKYBOX_SIZE = 200.0f;
-bool terminate = 1;
-
-// ISoundEngine *SoundEngine = createIrrKlangDevice();
+bool menuMode = 1;
 
 auto setProjection(int inputWinX, int inputWinY) {
     // float aspect = (float) winX / winY;
@@ -39,11 +37,14 @@ auto setProjection(int inputWinX, int inputWinY) {
 
 void thread_function(std::map<std::string, float>& threadData) {
     float x = 0.0, z = 0.0;
-    // SoundEngine->play2D("audio/breakout.mp3", true);
-    while (terminate) {
+    while (menuMode == 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        // if(menuMode) {
+        //     continue;
+        // }
         // sleep for a second
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         threadData["fps"] = GameTime::getGameTime()->getFPS();
+        threadData["time"]++;
         // std::cout << "fps: " << threadData["fps"] << "\n";
         float angle = atan2(threadData["z"], threadData["x"]) - atan2(z, x);
         // std::cout << "angle: " << angle << "\n";
@@ -70,6 +71,9 @@ int main(int argc, char** argv) {
     std::vector<Entity*> entities;
     // Vector to hold lights
     std::vector<Light*> lights;
+    std::map<std::string, float> threadData;
+    std::thread* t;
+
     if (argc != 2) {
         std::cerr << "USAGE: " << argv[0] << " basic|physics" << std::endl;
         exit(1);
@@ -88,17 +92,25 @@ int main(int argc, char** argv) {
 
     window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
         // Terminate program if escape is pressed
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
+
+        if (menuMode) {
+            if (key == GLFW_KEY_ENTER && action == GLFW_RELEASE) {
+                menuMode = 0;
+                t = (new std::thread(&thread_function, std::ref(threadData)));
+            }
+            return;
+        }
         // on/off headlights
-        else if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+        else if (key == GLFW_KEY_H && action == GLFW_RELEASE) {
             if (lights[1]->radius == 0.0f) {
                 lights[1]->radius = 15.0f;
             } else {
                 lights[1]->radius = 0.0f;
             }
-        } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+        } else if (key == GLFW_KEY_N && action == GLFW_RELEASE) {
             if (lights[0]->diffuse == vec3(0.7f, 0.7f, 0.7f)) {
                 lights[0]->diffuse = vec3(0.1f, 0.1f, 0.1f);
                 lights[1]->radius = 15.0f;
@@ -107,6 +119,10 @@ int main(int argc, char** argv) {
                 lights[1]->radius = 0.0f;
             }
         }
+
+        // else if(key == GLFW_KEY_M) {
+        //     menuMode = 1;
+        // }
 
         // top view
         else if (key == GLFW_KEY_T) {
@@ -376,18 +392,20 @@ int main(int argc, char** argv) {
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<seconds>(stop - start);
 
-    std::map<std::string, float> threadData;
-    std::thread t(&thread_function, std::ref(threadData));
-
     // Main logic/render loop.
     while (!glfwWindowShouldClose(window.get_window())) {
         GameTime::getGameTime()->update();
         // std::cout << "FPS: " << GameTime::getGameTime()->getFPS() << std::endl;
         cam->update(input);
 
+        if (menuMode) {
+            manager.renderMenu(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
+                window.get_height());
+        } else {
+            manager.render(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
+                window.get_height(), threadData);
+        }
         // Render entire scene
-        manager.render(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
-            window.get_height(), threadData);
 
         // Updates all particles and entities.
         ParticleManager::getParticleManager()->update();
@@ -422,7 +440,6 @@ int main(int argc, char** argv) {
         player->penalty += out;
         stop = high_resolution_clock::now();
         duration = duration_cast<seconds>(stop - start);
-        threadData["time"] = duration.count();
 
         for (int i = 0; i < 4; i++) {
             if (check[i] == 0) {
@@ -457,9 +474,10 @@ int main(int argc, char** argv) {
             }
         }
     }
-    terminate = 0;
+    menuMode = 1;
+    t->join(); // in case there is a delay in the termination of the thread
+
     // Cleanup program, delete all the dynamic entities.
-    t.join();
     delete water;
     for (auto* entity : entities) {
         delete entity;
