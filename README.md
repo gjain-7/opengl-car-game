@@ -51,14 +51,13 @@ __physics__ - uses formula for more realistic driving experience.
 
 # Todo
 - [x] Make track
--  Display
-    - [ ] speed
-    - [ ] lap count, timer
-    - [ ] score (custom)
-- [ ] Obstruction
-- [ ] Car gothrough in fence
+- [x] Display
+    - [x] speed
+    - [x] lap count, timer
+    - [x] score (custom)
 - [x] Reverse the car
 - [x] Headlight on/off
 - [x] Camera views (left,right,top,inside,back,front)
-- [ ] Weather change
+- [x] Weather change
 - [x] Sound
+- [ ] Obstruction

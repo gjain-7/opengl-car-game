@@ -21,8 +21,8 @@
 #include <chrono>
 #include <thread>
 #include <map>
-// #include <irrKlang/include/irrKlang.h>
-// using namespace irrklang;
+#include <irrKlang.h>
+using namespace irrklang;
 using namespace glm;
 using namespace std::chrono;
 
