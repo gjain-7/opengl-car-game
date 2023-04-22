@@ -38,19 +38,13 @@ auto setProjection(int inputWinX, int inputWinY) {
 void thread_function(std::map<std::string, float>& threadData) {
     float x = 0.0, z = 0.0;
     while (menuMode == 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        // if(menuMode) {
-        //     continue;
-        // }
         // sleep for a second
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         threadData["fps"] = GameTime::getGameTime()->getFPS();
         threadData["time"]++;
-        // std::cout << "fps: " << threadData["fps"] << "\n";
         float angle = atan2(threadData["z"], threadData["x"]) - atan2(z, x);
-        // std::cout << "angle: " << angle << "\n";
         if (abs(angle) < 1) {  // don't consider points where tan inverse blows up
             if (angle < 0) {
-                // std::cout << "Wrong Way!\n";
                 threadData["wrong_way"] = 1;
             } else {
                 threadData["wrong_way"] = 0;
@@ -80,15 +74,6 @@ int main(int argc, char** argv) {
     }
     // Check if desired controls are basic or physics
     bool basic_controls = strcmp(argv[1], "basic") == 0;
-
-    if (basic_controls) {
-        std::cout << "Controls: \n\tw - forward\n\ts - backwards\n\ta/d - turn left/right" << std::endl;
-    } else {
-        std::cout << "Controls: \n\tw - throttle\n\ts - brake\n\ta/d - steer left/right\n\tspace - handbrake\n\tt - "
-                     "top view\n\ti - front view\n\tj - left view\n\tl - right view\n\tk - back view\n\tr - rest to "
-                     "original view\n\th - toggle headlight"
-                  << std::endl;
-    }
 
     window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
         // Terminate program if escape is pressed
@@ -271,26 +256,6 @@ int main(int argc, char** argv) {
         entities.push_back(ent);
     }
 
-    // // Set of pre calculated cone positions on corners of the track
-    // // clang-format off
-    // std::vector<int> conePositions = {
-    //     263, 262, 226, 250, 209, 273,
-    //     213, 299, 342, 717, 329, 734,
-    //     326, 751, 354, 755, 372, 754,
-    //     750, 400, 765, 396, 748, 381,
-    //     828, 480, 842, 476, 854, 478,
-    //     852, 500, 852, 521, 842, 547,
-    //     772, 402
-    // };
-    // // clang-format on
-    // // Creates cones from the positions and adds them.
-    // for (size_t i = 0; i < conePositions.size(); i += 2) {
-    //     auto* cone = new Entity(&coneModel);
-    //     cone->setPosition(terrain->getPositionFromPixel(conePositions[i], conePositions[i + 1]));
-    //     cone->setScale(vec3(0.01f, 0.01f, 0.01f));  // The cone model was MASSIVE
-    //     entities.push_back(cone);
-    // }
-
     // Add the bordering fences to the map.
     float fenceSize = fenceModel.getRangeInDim(0).second - fenceModel.getRangeInDim(0).first;
 
@@ -377,12 +342,6 @@ int main(int argc, char** argv) {
         entity->placeBottomEdge(terrain->getHeight(entity->getPosition().x, entity->getPosition().z));
     }
 
-    // Create the large lake
-    auto* water = new Entity();
-    // water->setScale(vec3(100.0f, 1.0f, 50.0f));
-    // water->setPosition(terrain->getPositionFromPixel(650, 826));
-    // water->setPosition(glm::vec3(water->getPosition().x, 0.4f, water->getPosition().z));
-
     // Create the object for handling rendering to texture for shadows.
     ShadowMap shadowMap(player, lights[0], 4096);
 
@@ -395,14 +354,13 @@ int main(int argc, char** argv) {
     // Main logic/render loop.
     while (!glfwWindowShouldClose(window.get_window())) {
         GameTime::getGameTime()->update();
-        // std::cout << "FPS: " << GameTime::getGameTime()->getFPS() << std::endl;
         cam->update(input);
 
         if (menuMode) {
-            manager.renderMenu(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
+            manager.renderMenu(entities, lights, terrain, skybox, shadowMap, cam, projection, window.get_width(),
                 window.get_height());
         } else {
-            manager.render(entities, lights, terrain, water, skybox, shadowMap, cam, projection, window.get_width(),
+            manager.render(entities, lights, terrain, skybox, shadowMap, cam, projection, window.get_width(),
                 window.get_height(), threadData);
         }
         // Render entire scene
@@ -448,18 +406,14 @@ int main(int argc, char** argv) {
                 int dist = abs(x - x1) + abs(z - z1);
                 if (dist < 20) {
                     check[i] = 1;
-                    // std::cout << "Checkpoint " << i + 1 << " reached!" << std::endl;
                     player->checkpoint = i + 1;
                 }
             }
         }
         if (check[0] && check[1] && check[2] && check[3]) {
             if (x > 0 && abs(z + 112) < 12) {
-                // std::cout << "Lap Complete!" << std::endl;
-                // std::cout << "Penalty: " << player->penalty << std::endl;
                 stop = high_resolution_clock::now();
                 duration = duration_cast<seconds>(stop - start);
-                // std::cout << "Time Taken: " << duration.count() << std::endl;
                 for (int i = 0; i < 4; i++) {
                     check[i] = 0;
                 }
@@ -467,7 +421,6 @@ int main(int argc, char** argv) {
                 int score = 100000 / duration.count() - player->penalty;
                 score = max(0, score);
                 player->score += score;
-                // std::cout << "Score: " << score << std::endl;
                 player->lap += 1;
                 player->penalty = 0;
                 start = high_resolution_clock::now();
@@ -478,7 +431,6 @@ int main(int argc, char** argv) {
     t->join(); // in case there is a delay in the termination of the thread
 
     // Cleanup program, delete all the dynamic entities.
-    delete water;
     for (auto* entity : entities) {
         delete entity;
     }

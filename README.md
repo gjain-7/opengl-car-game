@@ -6,8 +6,9 @@ Simple car game written in C++, using OpenGL 3.3.
 
 Notable features include:
 - Shadow mapping
-- Water with dynamic reflection and refraction
 - Dynamic particle system
+- Lap and Scoring
+- Penalty and Time Keeping
 
 ## Dependencies
 

@@ -40,8 +40,6 @@ set(all_headers
   shaders/SkyboxShader.h
   shaders/TerrainShader.h
   ShadowMap.h
-  water/WaterRenderer.h
-  water/WaterShader.h
   Window.h
 )
 
@@ -70,8 +68,6 @@ set(all_sources
   shaders/SkyboxShader.cpp
   shaders/TerrainShader.cpp
   ShadowMap.cpp
-  water/WaterRenderer.cpp
-  water/WaterShader.cpp
   Window.cpp
 )
 
@@ -129,11 +125,6 @@ function(target_add_shader target out_dir)
 endfunction()
 
 # Copy shaders
-target_add_shader(opengl-car-game ${PROJECT_BINARY_DIR}/water/
-  ${CMAKE_CURRENT_LIST_DIR}/water/water.frag
-  ${CMAKE_CURRENT_LIST_DIR}/water/water.vert
-)
-
 target_add_shader(opengl-car-game ${PROJECT_BINARY_DIR}/particles/
   ${CMAKE_CURRENT_LIST_DIR}/particles/particle.frag
   ${CMAKE_CURRENT_LIST_DIR}/particles/particle.vert

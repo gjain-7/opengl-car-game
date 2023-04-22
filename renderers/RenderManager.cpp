@@ -6,49 +6,18 @@
 #include "../particles/ParticleManager.h"
 #include "../particles/ParticleSystem.h"
 
-const float WATER_PLANE_HEIGHT = 0.398918f;
-
 RenderManager::RenderManager(int winX, int winY)
-    : reflectionBuffer(640, 320), refractionBuffer(1280, 720), textRenderer(winX, winY) {
-    reflectionBuffer.addColourTexture();
-    reflectionBuffer.addDepthBuffer();
-
-    refractionBuffer.addColourTexture();
-    refractionBuffer.addDepthTexture();
-}
+    : textRenderer(winX, winY) {}
 
 void RenderManager::render(const std::vector<Entity*>& entities, const std::vector<Light*>& lights, Terrain* terrain,
-    Entity* water, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX,
-    int winY, std::map<std::string, float> &threadData) {
+    SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX, int winY,
+    std::map<std::string, float>& threadData) {
     // SHADOW PASS
     glDisable(GL_CLIP_DISTANCE0);
     shadowMap.bind();
     renderer.render(entities, lights, shadowMap.getView(), shadowMap.getProjection(), skybox.getSkyboxTexture(),
         glm::vec4(0, 1, 0, 10000));
     shadowMap.unbind();
-
-    // REFRACTION PASS
-    glEnable(GL_CLIP_DISTANCE0);
-    refractionBuffer.bind();
-    terrainRenderer.render(terrain, lights, cam->getViewMtx(), projection, shadowMap.getView(),
-        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, -1, 0, water->getPosition().y));
-    skybox.render(cam->getViewMtx(), projection);
-    renderer.render(entities, lights, cam->getViewMtx(), projection, skybox.getSkyboxTexture(), shadowMap.getView(),
-        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, -1, 0, water->getPosition().y));
-    ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
-    refractionBuffer.unbind();
-
-    // REFLECTION PASS
-    glEnable(GL_CLIP_DISTANCE0);
-    glm::mat4 invView = cam->getInverted(WATER_PLANE_HEIGHT);
-    reflectionBuffer.bind();
-    terrainRenderer.render(terrain, lights, invView, projection, shadowMap.getView(), shadowMap.getProjection(),
-        shadowMap.getTextureID(), glm::vec4(0, 1, 0, -water->getPosition().y));
-    skybox.render(invView, projection);
-    renderer.render(entities, lights, invView, projection, skybox.getSkyboxTexture(), shadowMap.getView(),
-        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, -water->getPosition().y));
-    ParticleManager::getParticleManager()->render(invView, projection);
-    reflectionBuffer.unbind();
 
     // NORMAL PASS
     glDisable(GL_CLIP_DISTANCE0);
@@ -61,7 +30,7 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
     renderer.render(entities, lights, cam->getViewMtx(), projection, skybox.getSkyboxTexture(), shadowMap.getView(),
         shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, 10000));
     ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
-    
+
     std::ostringstream out;
     Player* player = (Player*)entities[0];
     out << std::fixed << std::setprecision(2) << player->getSpeed();
@@ -75,15 +44,16 @@ void RenderManager::render(const std::vector<Entity*>& entities, const std::vect
     out.str("");
     textRenderer.render("Score: " + std::to_string(player->score), 10.0f, 450.0f, 0.4f, glm::vec3(0, 0, 0));
     textRenderer.render("Penalty: " + std::to_string(player->penalty), 10.0f, 400.0f, 0.4f, glm::vec3(0, 0, 0));
-    textRenderer.render("Last Checkpoint: " + std::to_string(player->checkpoint), 10.0f, 350.0f, 0.4f, glm::vec3(0, 0, 0));
+    textRenderer.render(
+        "Last Checkpoint: " + std::to_string(player->checkpoint), 10.0f, 350.0f, 0.4f, glm::vec3(0, 0, 0));
     textRenderer.render("Lap: " + std::to_string(player->lap), 10.0f, 300.0f, 0.4f, glm::vec3(0, 0, 0));
     if (threadData["wrong_way"] == 1) {
         textRenderer.render("Wrong Way!", 220.0f, 400.0f, 1.0f, glm::vec3(1, 0, 0));
     }
 }
 
-void RenderManager::renderMenu(const std::vector<Entity*>& entities, const std::vector<Light*>& lights, Terrain* terrain,
-    Entity* water, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX,
+void RenderManager::renderMenu(const std::vector<Entity*>& entities, const std::vector<Light*>& lights,
+    Terrain* terrain, SkyboxRenderer& skybox, ShadowMap& shadowMap, Camera* cam, const glm::mat4& projection, int winX,
     int winY) {
     // SHADOW PASS
     glDisable(GL_CLIP_DISTANCE0);
@@ -91,29 +61,6 @@ void RenderManager::renderMenu(const std::vector<Entity*>& entities, const std::
     renderer.render(entities, lights, shadowMap.getView(), shadowMap.getProjection(), skybox.getSkyboxTexture(),
         glm::vec4(0, 1, 0, 10000));
     shadowMap.unbind();
-
-    // REFRACTION PASS
-    glEnable(GL_CLIP_DISTANCE0);
-    refractionBuffer.bind();
-    terrainRenderer.render(terrain, lights, cam->getViewMtx(), projection, shadowMap.getView(),
-        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, -1, 0, water->getPosition().y));
-    skybox.render(cam->getViewMtx(), projection);
-    renderer.render(entities, lights, cam->getViewMtx(), projection, skybox.getSkyboxTexture(), shadowMap.getView(),
-        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, -1, 0, water->getPosition().y));
-    ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
-    refractionBuffer.unbind();
-
-    // REFLECTION PASS
-    glEnable(GL_CLIP_DISTANCE0);
-    glm::mat4 invView = cam->getInverted(WATER_PLANE_HEIGHT);
-    reflectionBuffer.bind();
-    terrainRenderer.render(terrain, lights, invView, projection, shadowMap.getView(), shadowMap.getProjection(),
-        shadowMap.getTextureID(), glm::vec4(0, 1, 0, -water->getPosition().y));
-    skybox.render(invView, projection);
-    renderer.render(entities, lights, invView, projection, skybox.getSkyboxTexture(), shadowMap.getView(),
-        shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, -water->getPosition().y));
-    ParticleManager::getParticleManager()->render(invView, projection);
-    reflectionBuffer.unbind();
 
     // NORMAL PASS
     glDisable(GL_CLIP_DISTANCE0);
@@ -130,6 +77,7 @@ void RenderManager::renderMenu(const std::vector<Entity*>& entities, const std::
         shadowMap.getProjection(), shadowMap.getTextureID(), glm::vec4(0, 1, 0, 10000));
     skybox.render(cam->getViewMtx(), projection);
     ParticleManager::getParticleManager()->render(cam->getViewMtx(), projection);
+    
     textRenderer.render("Welcome to New Formula Speed!", 30.0f, 400.0f, 1.0f, glm::vec3(0, 0, 0));
     textRenderer.render("Instructions", 30.0f, 350.0f, 0.5f, glm::vec3(0, 0, 0));
     textRenderer.render("W/A/S/D : Throttle/Left/Right/Brake", 30.0f, 310.0f, 0.5f, glm::vec3(0, 0, 0));
