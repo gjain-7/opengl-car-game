@@ -67,11 +67,18 @@ int main(int argc, char** argv) {
     std::vector<Light*> lights;
     std::map<std::string, float> threadData;
     std::thread* t;
+    // start the sound engine with default parameters
+    ISoundEngine* soundEngine = createIrrKlangDevice();
 
     if (argc != 2) {
         std::cerr << "USAGE: " << argv[0] << " basic|physics" << std::endl;
         exit(1);
     }
+    if (!soundEngine) {
+        printf("Could not startup soundEngine\n");
+        return 0;
+    }
+
     // Check if desired controls are basic or physics
     bool basic_controls = strcmp(argv[1], "basic") == 0;
 
@@ -84,6 +91,7 @@ int main(int argc, char** argv) {
         if (menuMode) {
             if (key == GLFW_KEY_ENTER && action == GLFW_RELEASE) {
                 menuMode = 0;
+                soundEngine->play2D("res/audio/breakout.wav", true);
                 t = (new std::thread(&thread_function, std::ref(threadData)));
             }
             return;
@@ -438,7 +446,7 @@ int main(int argc, char** argv) {
     for (auto* entity : entities) {
         delete entity;
     }
-
+    soundEngine->drop();
     glfwDestroyWindow(window.get_window());
     glfwTerminate();
 
