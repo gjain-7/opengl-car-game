@@ -56,9 +56,10 @@ __physics__ - uses formula for more realistic driving experience.
     - [x] speed
     - [x] lap count, timer
     - [x] score (custom)
-- [x] Reverse the car
 - [x] Headlight on/off
 - [x] Camera views (left,right,top,inside,back,front)
 - [x] Weather change
 - [x] Sound
+- [x] Wrong Way
+- [x] Menu
 - [ ] Obstruction

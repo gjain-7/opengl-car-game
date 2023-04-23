@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
 
     // Create Terrain using blend map, height map and all of the remaining texture components.
     std::vector<std::string> terrainImages = {"res/terrain/blend_map.png", "res/terrain/grass.jpg",
-        "res/terrain/road.jpg", "res/terrain/dirt.png", "res/terrain/mud.jpg"};
+        "res/terrain/road.jpg", "res/terrain/startfinishline.jpg", "res/terrain/mud.jpg"};
     Terrain* terrain = Terrain::loadTerrain(terrainImages, "res/terrain/height_map.png");
     // Moves the terrain model to be centered about the origin.
     terrain->setPosition(vec3(-Terrain::TERRAIN_SIZE / 2, 0.0f, -Terrain::TERRAIN_SIZE / 2));
@@ -357,12 +357,13 @@ int main(int argc, char** argv) {
         cam->update(input);
 
         if (menuMode) {
-            manager.renderMenu(entities, lights, terrain, skybox, shadowMap, cam, projection, window.get_width(),
-                window.get_height());
+            manager.renderMenu(
+                entities, lights, terrain, skybox, shadowMap, cam, projection, window.get_width(), window.get_height());
         } else {
             manager.render(entities, lights, terrain, skybox, shadowMap, cam, projection, window.get_width(),
                 window.get_height(), threadData);
         }
+
         // Render entire scene
 
         // Updates all particles and entities.
@@ -389,12 +390,15 @@ int main(int argc, char** argv) {
         threadData["x"] = x;
         threadData["z"] = z;
         int out = 1;
+
+        // check if player is out of track
         if (abs(x) < 125 && abs(z) < 125) {
             out = 0;
         }
         if (abs(x) < 98 && abs(z) < 98) {
             out = 1;
         }
+
         player->penalty += out;
         stop = high_resolution_clock::now();
         duration = duration_cast<seconds>(stop - start);
@@ -428,7 +432,7 @@ int main(int argc, char** argv) {
         }
     }
     menuMode = 1;
-    t->join(); // in case there is a delay in the termination of the thread
+    t->join();  // in case there is a delay in the termination of the thread
 
     // Cleanup program, delete all the dynamic entities.
     for (auto* entity : entities) {
