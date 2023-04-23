@@ -56,6 +56,7 @@ void thread_function(std::map<std::string, float>& threadData) {
 }
 
 int main(int argc, char** argv) {
+    bool basic_controls;
     InputState input;
     glm::mat4 projection;
     Player* player;
@@ -67,20 +68,26 @@ int main(int argc, char** argv) {
     std::vector<Light*> lights;
     std::map<std::string, float> threadData;
     std::thread* t;
-    // start the sound engine with default parameters
-    ISoundEngine* soundEngine = createIrrKlangDevice();
-
-    if (argc != 2) {
+    // create sound engine
+    ISoundEngine* soundEngine;
+    
+    // Check if desired controls are basic or physics
+    if (argc == 1) {
+        basic_controls = 0;
+    } else if (argc == 2) {
+        basic_controls = strcmp(argv[1], "basic") == 0;
+    } else {
         std::cerr << "USAGE: " << argv[0] << " basic|physics" << std::endl;
         exit(1);
     }
+
+    soundEngine = createIrrKlangDevice();
     if (!soundEngine) {
         printf("Could not startup soundEngine\n");
         return 0;
     }
 
-    // Check if desired controls are basic or physics
-    bool basic_controls = strcmp(argv[1], "basic") == 0;
+    // bool basic_controls = strcmp(argv[1], "basic") == 0;
 
     window.set_key_callback([&](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
         // Terminate program if escape is pressed
